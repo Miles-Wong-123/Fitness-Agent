@@ -1,0 +1,31 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: fitness-agent-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: fitness_agent
+      POSTGRES_USER: fitness
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fitness_dev_password}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build: .
+    container_name: fitness-agent-backend
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/fitness_agent
+      SPRING_DATASOURCE_USERNAME: fitness
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-fitness_dev_password}
+      JWT_SECRET: ${JWT_SECRET:-replace-this-with-a-long-random-secret-for-deploy}
+      APP_ENVIRONMENT: ${APP_ENVIRONMENT:-local}
+
+volumes:
+  postgres_data:

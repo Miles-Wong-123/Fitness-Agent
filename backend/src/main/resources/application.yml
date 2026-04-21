@@ -1,0 +1,27 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: fitness-agent
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/fitness_agent}
+    username: ${SPRING_DATASOURCE_USERNAME:fitness}
+    password: ${SPRING_DATASOURCE_PASSWORD:fitness_dev_password}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+  flyway:
+    enabled: true
+
+app:
+  environment: ${APP_ENVIRONMENT:local}
+  jwt:
+    secret: ${JWT_SECRET:local-dev-secret-change-before-deploy-please}
+    expires-minutes: ${JWT_EXPIRES_MINUTES:10080}
+  verification:
+    expires-minutes: ${VERIFICATION_EXPIRES_MINUTES:10}

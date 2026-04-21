@@ -1,0 +1,14 @@
+.DS_Store
+__pycache__/
+*.py[cod]
+.venv/
+.env
+backend/.env
+backend/.venv/
+backend/app/
+backend/scripts/
+target/
+backend/target/
+*.log
+7506B_*.pdf.png
+.idea/
