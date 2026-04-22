@@ -1,0 +1,9 @@
+<resources>
+    <style name="Theme.FitnessAgent" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/brand_green</item>
+        <item name="colorPrimaryVariant">#1D5B43</item>
+        <item name="colorSecondary">@color/brand_blue</item>
+        <item name="android:fontFamily">sans</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+</resources>

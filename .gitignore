@@ -12,3 +12,7 @@ backend/target/
 *.log
 7506B_*.pdf.png
 .idea/
+android/local.properties
+android/.gradle/
+android/build/
+android/app/build/
