@@ -9,9 +9,12 @@ import com.miles.fitnessagent.knowledge.KnowledgeService;
 import com.miles.fitnessagent.knowledge.dto.SourceChunk;
 import com.miles.fitnessagent.qwen.QwenClient;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
@@ -20,17 +23,20 @@ public class ConversationService {
     private final MessageRepository messageRepository;
     private final KnowledgeService knowledgeService;
     private final QwenClient qwenClient;
+    private final TransactionTemplate transactionTemplate;
 
     public ConversationService(
             ConversationRepository conversationRepository,
             MessageRepository messageRepository,
             KnowledgeService knowledgeService,
-            QwenClient qwenClient
+            QwenClient qwenClient,
+            TransactionTemplate transactionTemplate
     ) {
         this.conversationRepository = conversationRepository;
         this.messageRepository = messageRepository;
         this.knowledgeService = knowledgeService;
         this.qwenClient = qwenClient;
+        this.transactionTemplate = transactionTemplate;
     }
 
     public List<ConversationResponse> list(Long userId) {
@@ -77,6 +83,41 @@ public class ConversationService {
         return new ChatResponse(answer, sources);
     }
 
+    @Transactional
+    public SseEmitter chatStream(Long userId, ChatRequest request) {
+        Conversation conversation = requireConversation(userId, request.conversationId());
+
+        Message userMessage = new Message();
+        userMessage.setConversationId(conversation.getId());
+        userMessage.setRole("user");
+        userMessage.setContent(request.message());
+        messageRepository.save(userMessage);
+
+        List<SourceChunk> sources = knowledgeService.retrieve(request.message());
+        String prompt = buildPrompt(request.message(), sources);
+        SseEmitter emitter = new SseEmitter(0L);
+
+        CompletableFuture.runAsync(() -> {
+            StringBuilder fullAnswer = new StringBuilder();
+            try {
+                safeSend(emitter, "sources", sources);
+                String answer = qwenClient.chatStream(prompt, token -> {
+                    fullAnswer.append(token);
+                    safeSend(emitter, "token", token);
+                });
+                String finalAnswer = fullAnswer.isEmpty() ? answer : fullAnswer.toString();
+                persistAssistantMessage(conversation.getId(), finalAnswer);
+                safeSend(emitter, "done", "done");
+                emitter.complete();
+            } catch (RuntimeException ex) {
+                safeSend(emitter, "error", ex.getMessage());
+                emitter.completeWithError(ex);
+            }
+        });
+
+        return emitter;
+    }
+
     private Conversation requireConversation(Long userId, Long conversationId) {
         return conversationRepository.findByIdAndUserId(conversationId, userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Conversation not found"));
@@ -105,6 +146,29 @@ public class ConversationService {
         }
         prompt.append("\nUser question:\n").append(question);
         return prompt.toString();
+    }
+
+    private void persistAssistantMessage(Long conversationId, String answer) {
+        transactionTemplate.executeWithoutResult(status -> {
+            Message assistantMessage = new Message();
+            assistantMessage.setConversationId(conversationId);
+            assistantMessage.setRole("assistant");
+            assistantMessage.setContent(answer);
+            messageRepository.save(assistantMessage);
+
+            conversationRepository.findById(conversationId).ifPresent(conversation -> {
+                conversation.touch();
+                conversationRepository.save(conversation);
+            });
+        });
+    }
+
+    private void safeSend(SseEmitter emitter, String eventName, Object data) {
+        try {
+            emitter.send(SseEmitter.event().name(eventName).data(data));
+        } catch (Exception ex) {
+            throw new IllegalStateException("Failed to send SSE event", ex);
+        }
     }
 
     private String normalizeTitle(String title) {

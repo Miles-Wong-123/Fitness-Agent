@@ -5,11 +5,13 @@ import com.miles.fitnessagent.chat.dto.ChatResponse;
 import com.miles.fitnessagent.common.CurrentUser;
 import com.miles.fitnessagent.security.AuthUser;
 import jakarta.validation.Valid;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @RestController
 @RequestMapping("/api/chat")
@@ -26,5 +28,11 @@ public class ChatController {
     public ChatResponse chat(@Valid @RequestBody ChatRequest request, Authentication authentication) {
         AuthUser user = currentUser.require(authentication);
         return conversationService.chat(user.id(), request);
+    }
+
+    @PostMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter chatStream(@Valid @RequestBody ChatRequest request, Authentication authentication) {
+        AuthUser user = currentUser.require(authentication);
+        return conversationService.chatStream(user.id(), request);
     }
 }
