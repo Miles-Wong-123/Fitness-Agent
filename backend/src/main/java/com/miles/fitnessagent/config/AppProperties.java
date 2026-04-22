@@ -9,6 +9,7 @@ public class AppProperties {
     private Verification verification = new Verification();
     private Qwen qwen = new Qwen();
     private Rag rag = new Rag();
+    private Mail mail = new Mail();
 
     public String getEnvironment() {
         return environment;
@@ -48,6 +49,14 @@ public class AppProperties {
 
     public void setRag(Rag rag) {
         this.rag = rag;
+    }
+
+    public Mail getMail() {
+        return mail;
+    }
+
+    public void setMail(Mail mail) {
+        this.mail = mail;
     }
 
     public static class Jwt {
@@ -158,6 +167,27 @@ public class AppProperties {
 
         public void setChunkOverlap(int chunkOverlap) {
             this.chunkOverlap = chunkOverlap;
+        }
+    }
+
+    public static class Mail {
+        private boolean enabled = false;
+        private String from = "";
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public String getFrom() {
+            return from;
+        }
+
+        public void setFrom(String from) {
+            this.from = from;
         }
     }
 }

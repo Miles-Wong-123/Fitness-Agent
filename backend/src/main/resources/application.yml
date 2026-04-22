@@ -17,6 +17,19 @@ spring:
         format_sql: true
   flyway:
     enabled: true
+  mail:
+    host: ${SMTP_HOST:smtp.qq.com}
+    port: ${SMTP_PORT:465}
+    username: ${SMTP_USERNAME:}
+    password: ${SMTP_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          ssl:
+            enable: ${SMTP_SSL:true}
+          starttls:
+            enable: ${SMTP_STARTTLS:false}
 
 app:
   environment: ${APP_ENVIRONMENT:local}
@@ -35,3 +48,6 @@ app:
     top-k: ${RAG_TOP_K:4}
     chunk-size: ${RAG_CHUNK_SIZE:900}
     chunk-overlap: ${RAG_CHUNK_OVERLAP:120}
+  mail:
+    enabled: ${MAIL_ENABLED:false}
+    from: ${MAIL_FROM:}

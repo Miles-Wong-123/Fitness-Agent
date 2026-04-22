@@ -43,3 +43,34 @@ Then test:
 ```bash
 curl http://43.129.185.36:8080/api/health
 ```
+
+## QQ Mail Verification Code
+
+Use a QQ Mail SMTP authorization code, not your QQ password. Put it only in
+`backend/.env` on the server:
+
+```env
+MAIL_ENABLED=true
+MAIL_FROM=your_qq_number@qq.com
+SMTP_HOST=smtp.qq.com
+SMTP_PORT=465
+SMTP_USERNAME=your_qq_number@qq.com
+SMTP_SSL=true
+SMTP_STARTTLS=false
+```
+
+Also set `SMTP_PASSWORD` in `.env` to your QQ Mail authorization code.
+
+When `MAIL_ENABLED=true`, `/api/auth/send-code` sends the code by email and
+does not return `devCode`.
+
+## Plan APIs
+
+Authenticated users can call:
+
+```text
+POST /api/plans/meal
+POST /api/plans/workout
+```
+
+The Android app has pages for both features.

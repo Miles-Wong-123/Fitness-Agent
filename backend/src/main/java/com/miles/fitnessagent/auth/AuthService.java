@@ -24,6 +24,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AppProperties appProperties;
+    private final EmailService emailService;
     private final SecureRandom secureRandom = new SecureRandom();
 
     public AuthService(
@@ -31,13 +32,15 @@ public class AuthService {
             VerificationCodeRepository verificationCodeRepository,
             PasswordEncoder passwordEncoder,
             JwtService jwtService,
-            AppProperties appProperties
+            AppProperties appProperties,
+            EmailService emailService
     ) {
         this.userRepository = userRepository;
         this.verificationCodeRepository = verificationCodeRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.appProperties = appProperties;
+        this.emailService = emailService;
     }
 
     @Transactional
@@ -52,8 +55,9 @@ public class AuthService {
         verificationCode.setPurpose("register");
         verificationCode.setExpiresAt(OffsetDateTime.now().plusMinutes(appProperties.getVerification().getExpiresMinutes()));
         verificationCodeRepository.save(verificationCode);
+        emailService.sendVerificationCode(email, code);
 
-        String devCode = "local".equalsIgnoreCase(appProperties.getEnvironment()) ? code : null;
+        String devCode = !emailService.isEnabled() && "local".equalsIgnoreCase(appProperties.getEnvironment()) ? code : null;
         return new SendCodeResponse("Verification code generated", devCode);
     }
 

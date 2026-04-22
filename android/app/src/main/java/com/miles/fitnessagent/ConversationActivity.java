@@ -49,6 +49,8 @@ public class ConversationActivity extends AppCompatActivity {
         TextView emailText = findViewById(R.id.email_text);
         Button newButton = findViewById(R.id.new_conversation_button);
         Button logoutButton = findViewById(R.id.logout_button);
+        Button mealPlanButton = findViewById(R.id.meal_plan_button);
+        Button workoutPlanButton = findViewById(R.id.workout_plan_button);
         ImageButton themeButton = findViewById(R.id.theme_button);
         RecyclerView recyclerView = findViewById(R.id.conversation_recycler);
 
@@ -58,6 +60,8 @@ public class ConversationActivity extends AppCompatActivity {
         recyclerView.setAdapter(adapter);
 
         newButton.setOnClickListener(v -> createConversation());
+        mealPlanButton.setOnClickListener(v -> openPlan("meal"));
+        workoutPlanButton.setOnClickListener(v -> openPlan("workout"));
         logoutButton.setOnClickListener(v -> {
             sessionManager.logout();
             startActivity(new Intent(this, LoginActivity.class));
@@ -118,6 +122,12 @@ public class ConversationActivity extends AppCompatActivity {
         Intent intent = new Intent(this, ChatActivity.class);
         intent.putExtra("conversation_id", conversation.id);
         intent.putExtra("conversation_title", conversation.title);
+        startActivity(intent);
+    }
+
+    private void openPlan(String type) {
+        Intent intent = new Intent(this, PlanActivity.class);
+        intent.putExtra("plan_type", type);
         startActivity(intent);
     }
 
