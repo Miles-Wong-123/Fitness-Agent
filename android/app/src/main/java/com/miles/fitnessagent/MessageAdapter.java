@@ -29,7 +29,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
         Message message = messages.get(position);
         boolean user = "user".equals(message.role);
         holder.role.setText(user ? "You" : "Fitness Agent");
-        holder.content.setText(message.content);
+        holder.content.setText(user ? message.content : MarkdownRenderer.render(message.content));
         holder.itemView.setBackgroundResource(user ? R.drawable.bg_message_user : R.drawable.bg_message_agent);
     }
 

@@ -19,7 +19,20 @@ public class ApiClient {
     }
 
     public static String post(String path, JSONObject body, String token) throws Exception {
-        HttpURLConnection conn = open(path, "POST", token);
+        return sendJson(path, "POST", body, token);
+    }
+
+    public static String patch(String path, JSONObject body, String token) throws Exception {
+        return sendJson(path, "PATCH", body, token);
+    }
+
+    public static String delete(String path, String token) throws Exception {
+        HttpURLConnection conn = open(path, "DELETE", token);
+        return readResponse(conn);
+    }
+
+    private static String sendJson(String path, String method, JSONObject body, String token) throws Exception {
+        HttpURLConnection conn = open(path, method, token);
         conn.setDoOutput(true);
         byte[] bytes = body.toString().getBytes(StandardCharsets.UTF_8);
         try (OutputStream outputStream = conn.getOutputStream()) {

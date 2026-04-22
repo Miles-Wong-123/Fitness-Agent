@@ -3,6 +3,7 @@ package com.miles.fitnessagent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -15,12 +16,22 @@ public class ConversationAdapter extends RecyclerView.Adapter<ConversationAdapte
         void onClick(Conversation conversation);
     }
 
+    public interface OnConversationAction {
+        void onAction(Conversation conversation, View anchor);
+    }
+
     private final List<Conversation> conversations;
     private final OnConversationClick listener;
+    private final OnConversationAction actionListener;
 
-    public ConversationAdapter(List<Conversation> conversations, OnConversationClick listener) {
+    public ConversationAdapter(
+            List<Conversation> conversations,
+            OnConversationClick listener,
+            OnConversationAction actionListener
+    ) {
         this.conversations = conversations;
         this.listener = listener;
+        this.actionListener = actionListener;
     }
 
     @NonNull
@@ -36,6 +47,7 @@ public class ConversationAdapter extends RecyclerView.Adapter<ConversationAdapte
         holder.title.setText(conversation.title);
         holder.subtitle.setText("Updated " + conversation.updatedAt);
         holder.itemView.setOnClickListener(v -> listener.onClick(conversation));
+        holder.actionButton.setOnClickListener(v -> actionListener.onAction(conversation, v));
     }
 
     @Override
@@ -46,11 +58,13 @@ public class ConversationAdapter extends RecyclerView.Adapter<ConversationAdapte
     static class ViewHolder extends RecyclerView.ViewHolder {
         TextView title;
         TextView subtitle;
+        ImageButton actionButton;
 
         ViewHolder(View itemView) {
             super(itemView);
             title = itemView.findViewById(R.id.conversation_title);
             subtitle = itemView.findViewById(R.id.conversation_subtitle);
+            actionButton = itemView.findViewById(R.id.conversation_action_button);
         }
     }
 }

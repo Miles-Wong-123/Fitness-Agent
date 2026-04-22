@@ -1,15 +1,20 @@
 package com.miles.fitnessagent;
 
 import android.content.Intent;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.PopupMenu;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -48,7 +53,7 @@ public class ConversationActivity extends AppCompatActivity {
         RecyclerView recyclerView = findViewById(R.id.conversation_recycler);
 
         emailText.setText(sessionManager.getEmail());
-        adapter = new ConversationAdapter(conversations, this::openChat);
+        adapter = new ConversationAdapter(conversations, this::openChat, this::showConversationMenu);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
 
@@ -114,5 +119,71 @@ public class ConversationActivity extends AppCompatActivity {
         intent.putExtra("conversation_id", conversation.id);
         intent.putExtra("conversation_title", conversation.title);
         startActivity(intent);
+    }
+
+    private void showConversationMenu(Conversation conversation, View anchor) {
+        PopupMenu popupMenu = new PopupMenu(this, anchor);
+        popupMenu.getMenu().add("Rename");
+        popupMenu.getMenu().add("Delete");
+        popupMenu.setOnMenuItemClickListener(item -> {
+            String title = item.getTitle().toString();
+            if ("Rename".equals(title)) {
+                showRenameDialog(conversation);
+            } else if ("Delete".equals(title)) {
+                showDeleteDialog(conversation);
+            }
+            return true;
+        });
+        popupMenu.show();
+    }
+
+    private void showRenameDialog(Conversation conversation) {
+        EditText input = new EditText(this);
+        input.setSingleLine(true);
+        input.setText(conversation.title);
+        input.setSelectAllOnFocus(true);
+        new AlertDialog.Builder(this)
+                .setTitle("Rename conversation")
+                .setView(input)
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Save", (dialog, which) -> renameConversation(conversation, input.getText().toString().trim()))
+                .show();
+    }
+
+    private void showDeleteDialog(Conversation conversation) {
+        new AlertDialog.Builder(this)
+                .setTitle("Delete conversation")
+                .setMessage("Delete \"" + conversation.title + "\"?")
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Delete", (DialogInterface dialog, int which) -> deleteConversation(conversation))
+                .show();
+    }
+
+    private void renameConversation(Conversation conversation, String title) {
+        if (title.isEmpty()) {
+            Toast.makeText(this, "Title cannot be empty.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        executor.execute(() -> {
+            try {
+                JSONObject body = new JSONObject();
+                body.put("title", title);
+                ApiClient.patch("/conversations/" + conversation.id, body, sessionManager.getToken());
+                mainHandler.post(this::loadConversations);
+            } catch (Exception ex) {
+                mainHandler.post(() -> Toast.makeText(this, "Rename failed: " + ex.getMessage(), Toast.LENGTH_LONG).show());
+            }
+        });
+    }
+
+    private void deleteConversation(Conversation conversation) {
+        executor.execute(() -> {
+            try {
+                ApiClient.delete("/conversations/" + conversation.id, sessionManager.getToken());
+                mainHandler.post(this::loadConversations);
+            } catch (Exception ex) {
+                mainHandler.post(() -> Toast.makeText(this, "Delete failed: " + ex.getMessage(), Toast.LENGTH_LONG).show());
+            }
+        });
     }
 }

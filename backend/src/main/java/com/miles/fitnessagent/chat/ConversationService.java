@@ -4,6 +4,7 @@ import com.miles.fitnessagent.chat.dto.ChatRequest;
 import com.miles.fitnessagent.chat.dto.ChatResponse;
 import com.miles.fitnessagent.chat.dto.ConversationCreateRequest;
 import com.miles.fitnessagent.chat.dto.ConversationResponse;
+import com.miles.fitnessagent.chat.dto.ConversationUpdateRequest;
 import com.miles.fitnessagent.chat.dto.MessageResponse;
 import com.miles.fitnessagent.knowledge.KnowledgeService;
 import com.miles.fitnessagent.knowledge.dto.SourceChunk;
@@ -58,6 +59,20 @@ public class ConversationService {
         return messageRepository.findByConversationIdOrderByCreatedAtAsc(conversationId).stream()
                 .map(this::toMessageResponse)
                 .toList();
+    }
+
+    @Transactional
+    public ConversationResponse rename(Long userId, Long conversationId, ConversationUpdateRequest request) {
+        Conversation conversation = requireConversation(userId, conversationId);
+        conversation.setTitle(normalizeTitle(request.title()));
+        conversation.touch();
+        return toConversationResponse(conversationRepository.save(conversation));
+    }
+
+    @Transactional
+    public void delete(Long userId, Long conversationId) {
+        Conversation conversation = requireConversation(userId, conversationId);
+        conversationRepository.delete(conversation);
     }
 
     @Transactional

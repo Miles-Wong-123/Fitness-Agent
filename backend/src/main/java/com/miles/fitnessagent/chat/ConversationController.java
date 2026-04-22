@@ -2,13 +2,16 @@ package com.miles.fitnessagent.chat;
 
 import com.miles.fitnessagent.chat.dto.ConversationCreateRequest;
 import com.miles.fitnessagent.chat.dto.ConversationResponse;
+import com.miles.fitnessagent.chat.dto.ConversationUpdateRequest;
 import com.miles.fitnessagent.chat.dto.MessageResponse;
 import com.miles.fitnessagent.common.CurrentUser;
 import com.miles.fitnessagent.security.AuthUser;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -48,5 +51,24 @@ public class ConversationController {
     ) {
         AuthUser user = currentUser.require(authentication);
         return conversationService.messages(user.id(), conversationId);
+    }
+
+    @PatchMapping("/{conversationId}")
+    public ConversationResponse rename(
+            @PathVariable Long conversationId,
+            @Valid @RequestBody ConversationUpdateRequest request,
+            Authentication authentication
+    ) {
+        AuthUser user = currentUser.require(authentication);
+        return conversationService.rename(user.id(), conversationId, request);
+    }
+
+    @DeleteMapping("/{conversationId}")
+    public void delete(
+            @PathVariable Long conversationId,
+            Authentication authentication
+    ) {
+        AuthUser user = currentUser.require(authentication);
+        conversationService.delete(user.id(), conversationId);
     }
 }
