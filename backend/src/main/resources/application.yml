@@ -25,3 +25,13 @@ app:
     expires-minutes: ${JWT_EXPIRES_MINUTES:10080}
   verification:
     expires-minutes: ${VERIFICATION_EXPIRES_MINUTES:10}
+  qwen:
+    api-key: ${QWEN_API_KEY:}
+    base-url: ${QWEN_BASE_URL:https://dashscope.aliyuncs.com/compatible-mode/v1}
+    chat-model: ${QWEN_CHAT_MODEL:qwen-plus}
+    embedding-model: ${QWEN_EMBEDDING_MODEL:text-embedding-v4}
+  rag:
+    embedding-dimension: ${RAG_EMBEDDING_DIMENSION:1024}
+    top-k: ${RAG_TOP_K:4}
+    chunk-size: ${RAG_CHUNK_SIZE:900}
+    chunk-overlap: ${RAG_CHUNK_OVERLAP:120}

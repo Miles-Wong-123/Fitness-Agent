@@ -7,8 +7,6 @@ services:
       POSTGRES_DB: fitness_agent
       POSTGRES_USER: fitness
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fitness_dev_password}
-    ports:
-      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
@@ -26,6 +24,11 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-fitness_dev_password}
       JWT_SECRET: ${JWT_SECRET:-replace-this-with-a-long-random-secret-for-deploy}
       APP_ENVIRONMENT: ${APP_ENVIRONMENT:-local}
+      QWEN_API_KEY: ${QWEN_API_KEY:-}
+      QWEN_BASE_URL: ${QWEN_BASE_URL:-https://dashscope.aliyuncs.com/compatible-mode/v1}
+      QWEN_CHAT_MODEL: ${QWEN_CHAT_MODEL:-qwen-plus}
+      QWEN_EMBEDDING_MODEL: ${QWEN_EMBEDDING_MODEL:-text-embedding-v4}
+      RAG_TOP_K: ${RAG_TOP_K:-4}
 
 volumes:
   postgres_data:
